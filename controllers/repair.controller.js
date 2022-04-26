@@ -4,10 +4,12 @@ const { Repair } = require('../models/repair.model');
 
 const getRepairs = async (req, res = response) => {
     try {
-        const reparis = await Repair.findAll();
+        const repairs = await Repair.findAll();
+
+        const repairsFiltered = repairs.filter(repair => repair.dataValues.status === 'pending')
 
         res.status(200).json({
-            reparis,
+            repairsFiltered,
         })
     } catch (error) {
         console.log(error);
@@ -22,11 +24,19 @@ const getRepair = async (req, res = response) => {
 
         const { repair } = req;
 
-        if (repair) {
+        if (repair.dataValues.status === 'pending') {
+            if (repair) {
+                res.status(200).json({
+                    repair
+                })
+            }
+        } else {
             res.status(200).json({
-                repair
+                msg: 'the repair you seek has been completed or canceled'
             })
         }
+
+
 
     } catch (error) {
 

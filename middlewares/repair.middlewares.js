@@ -9,7 +9,8 @@ const repairExists = catchAsync(async (req, res = response, next) => {
 
     const { id } = req.params;
 
-    const repair = await Repair.findByPk(id);
+    const repair = await Repair.findOne({ where: { id }, include: [{ model: User }] });
+
 
     if (!repair) {
         return next(new AppError('Repair not found given that id', 404))

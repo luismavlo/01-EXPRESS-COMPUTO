@@ -19,11 +19,9 @@ const getRepairs = catchAsync(async (req, res = response, next) => {
 const getRepair = catchAsync(async (req, res = response, next) => {
     const { repair } = req;
 
-    console.log(repair.status)
-
     if (repair.status === 'pending') {
         res.status(200).json({
-            repair
+            repair,
         })
     } else if (repair.status === 'completed') {
         res.status(200).json({

@@ -13,7 +13,9 @@ router.get('/:id', repairExists, getRepair);
 router.post(
     '/',
     [
-        check('date', 'La fecha es obligatoria').not().isEmpty(),
+        check('date', 'The date is required').not().isEmpty(),
+        check('computerNumber', 'the computer number is mandatory').not().isEmpty(),
+        check('comments', 'comments are required').not().isEmpty(),
         validateFields
     ],
     userExist,
@@ -23,7 +25,7 @@ router.post(
 router.patch(
     '/:id',
     [
-        check('status', 'El estado es obligatorio').not().isEmpty(),
+        check('status', 'The status is mandatory').not().isEmpty(),
         validateFields
     ],
     repairExists,

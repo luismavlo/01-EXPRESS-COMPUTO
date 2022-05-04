@@ -1,53 +1,36 @@
 const { Repair } = require("../models/repair.model");
 const { response } = require('express');
 const { User } = require("../models/user.model");
+const { AppError } = require("../helpers/appError");
+const { catchAsync } = require("../helpers/catchAsync");
 
 
-const repairExists = async (req, res = response, next) => {
-    try {
-        const { id } = req.params;
+const repairExists = catchAsync(async (req, res = response, next) => {
 
-        const repair = await Repair.findByPk(id);
+    const { id } = req.params;
 
-        if (!repair) {
-            return res.status(404).json({
-                status: 'error',
-                msg: 'Repair not found given that id', id
-            })
-        }
+    const repair = await Repair.findByPk(id);
 
-        req.repair = repair;
-        next();
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador'
-        })
+    if (!repair) {
+        return next(new AppError('Repair not found given that id', 404))
     }
-}
 
-const userExist = async (req, res = response, next) => {
-    try {
+    req.repair = repair;
+    next();
 
-        const { userId } = req.body
-        const user = await User.findByPk(userId);
+})
 
-        if (!user || user.dataValues.status === 'inactive') {
-            return res.status(400).json({
-                status: 'error',
-                msg: 'there is no user with that id or it is inactive'
-            })
-        }
+const userExist = catchAsync(async (req, res = response, next) => {
 
-        next();
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador'
-        })
+    const { userId } = req.body
+    const user = await User.findByPk(userId);
+
+    if (!user || user.status === 'inactive') {
+        return next(new AppError('there is no user with that id or it is inactive', 404))
     }
-}
+
+    next();
+});
 
 module.exports = {
     repairExists,

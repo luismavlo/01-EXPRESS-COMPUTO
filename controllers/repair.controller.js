@@ -1,110 +1,81 @@
 const { response } = require('express');
+const { catchAsync } = require('../helpers/catchAsync');
 const { Repair } = require('../models/repair.model');
+const { User } = require('../models/user.model');
 
 
-const getRepairs = async (req, res = response) => {
-    try {
-        const repairs = await Repair.findAll();
+const getRepairs = catchAsync(async (req, res = response, next) => {
+    const repairs = await Repair.findAll({ include: [{ model: User }] });
 
-        const repairsFiltered = repairs.filter(repair => repair.dataValues.status === 'pending')
-
-        res.status(200).json({
-            repairsFiltered,
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador'
-        })
-    }
-};
-
-const getRepair = async (req, res = response) => {
-    try {
-
-        const { repair } = req;
-
-        if (repair.dataValues.status === 'pending') {
-            if (repair) {
-                res.status(200).json({
-                    repair
-                })
-            }
-        } else {
-            res.status(200).json({
-                msg: 'the repair you seek has been completed or canceled'
-            })
-        }
+    const repairsFiltered = repairs.filter(repair => repair.status === 'pending')
 
 
+    res.status(200).json({
+        repairsFiltered,
+    })
 
-    } catch (error) {
+});
 
-    }
-}
+const getRepair = catchAsync(async (req, res = response, next) => {
+    const { repair } = req;
 
-const createRepair = async (req, res = response) => {
-    const { body } = req;
+    console.log(repair.status)
 
-
-    try {
-
-
-        const repair = new Repair(body);
-        await repair.save();
-
+    if (repair.status === 'pending') {
         res.status(200).json({
             repair
         })
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador - controller'
+    } else if (repair.status === 'completed') {
+        res.status(200).json({
+            msg: 'the repair you seek has been completed'
+        })
+    } else if (repair.status === 'cancelled') {
+        res.status(200).json({
+            msg: 'the repair you seek has been cancelled'
         })
     }
-}
 
-const updateRepair = async (req, res = response) => {
+});
+
+const createRepair = catchAsync(async (req, res = response, next) => {
+    const { date, userId, computerNumber, comments } = req.body;
+
+    const repair = new Repair({ date, userId, computerNumber, comments });
+    await repair.save();
+
+    res.status(200).json({
+        repair
+    })
+
+});
+
+const updateRepair = catchAsync(async (req, res = response, next) => {
 
     const { status } = req.body
 
-    try {
+    const { repair } = req;
 
-        const { repair } = req;
+    await repair.update({ status });
 
-        await repair.update({ status });
+    res.status(201).json({
+        msg: 'Repair updated successfully',
+        repair
+    })
 
-        res.status(201).json({
-            msg: 'Repair updated successfully',
-            repair
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador'
-        })
-    }
-}
+});
 
-const deleteRepair = async (req, res = response) => {
-    try {
+const deleteRepair = catchAsync(async (req, res = response, next) => {
 
-        const { repair } = req;
+    const { repair } = req;
 
-        await repair.update({ status: 'cancelled' })
+    await repair.update({ status: 'cancelled' })
 
-        res.status(200).json({
-            msg: 'Deletion done successfully',
-            repair,
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            msg: 'Hable con el administrador'
-        })
-    }
-}
+    res.status(200).json({
+        msg: 'Deletion done successfully',
+        repair,
+    })
+
+});
 
 module.exports = {
     getRepair,

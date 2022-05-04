@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { check } = require("express-validator");
 const { createUser, updateUser, deleteUser, getUser, getUsers } = require("../controllers/user.controller");
-const { userExists } = require("../middlewares/users.middlewares");
+const { userExists, emailExist } = require("../middlewares/users.middlewares");
 const { validateFields } = require("../middlewares/validate-fields");
 const router = Router();
 
@@ -17,7 +17,8 @@ router.post(
         check('email', 'El email es obligatorio y debe tener formato correcto').isEmail(),
         check('password', 'El password debe ser mayor de 5 caracteres').isLength({ min: 6 }),
         check('role', 'El rol es obligatorio').not().isEmpty(),
-        validateFields
+        validateFields,
+        emailExist
     ],
     createUser);
 

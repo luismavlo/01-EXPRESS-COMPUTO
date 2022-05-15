@@ -9,7 +9,7 @@ const repairExists = catchAsync(async (req, res = response, next) => {
 
     const { id } = req.params;
 
-    const repair = await Repair.findOne({ where: { id }, include: [{ model: User }] });
+    const repair = await Repair.findOne({ where: { id }, include: [{ model: User, attributes: { exclude: ['password'] } }] });
 
 
     if (!repair) {

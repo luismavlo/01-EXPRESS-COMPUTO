@@ -3,6 +3,8 @@ const { response } = require('express');
 const { User } = require('../models/user.model');
 
 const { catchAsync } = require('../helpers/catchAsync');
+const bcryptjs = require('bcryptjs');
+const { generateJWT } = require('../helpers/jwt');
 
 const getUsers = catchAsync(async (req, res = response, next) => {
     const users = await User.findAll();
@@ -24,15 +26,40 @@ const getUser = catchAsync(async (req, res = response, next) => {
 
 });
 
-const createUser = catchAsync(async (req, res = response, next) => {
+const login = catchAsync(async (req, res = response, next) => {
+
     const { user } = req;
 
-    console.log(user)
+    const token = await generateJWT(user.id);
 
-    const usr = new User(user);
-    await usr.save();
+    res.json({
+        status: 'success',
+        token,
+        user: {
+            name: user.name,
+            uid: user.id
+        }
+    })
+})
 
-    return res.json(usr)
+const createUser = catchAsync(async (req, res = response, next) => {
+
+    const { name, email, password, role } = req.user;
+
+    const user = new User({ name, email, password, role });
+
+    const salt = bcryptjs.genSaltSync();
+    user.password = bcryptjs.hashSync(password, salt);
+
+    await user.save();
+
+    const token = await generateJWT(user.id);
+
+    res.status(201).json({
+        status: 'success',
+        uid: user.id,
+        token
+    })
 
 })
 
@@ -45,8 +72,7 @@ const updateUser = catchAsync(async (req, res = response, next) => {
     await user.update({ name, email });
 
     res.status(201).json({
-        msg: 'User updated successfully',
-        user
+        status: 'success'
     })
 
 });
@@ -57,7 +83,9 @@ const deleteUser = catchAsync(async (req, res = response, next) => {
 
     await user.update({ status: 'inactive' })
 
-    res.json(user)
+    res.json({
+        status: 'success'
+    })
 });
 
 module.exports = {
@@ -65,5 +93,6 @@ module.exports = {
     getUser,
     getUsers,
     updateUser,
-    deleteUser
+    deleteUser,
+    login
 }

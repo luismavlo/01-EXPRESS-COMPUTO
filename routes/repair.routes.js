@@ -2,12 +2,15 @@ const { Router } = require("express");
 const { check } = require("express-validator");
 const { getRepairs, getRepair, createRepair, updateRepair, deleteRepair } = require("../controllers/repair.controller");
 const { repairExists, userExist } = require("../middlewares/repair.middlewares");
+const { protectToken, protectEmployee } = require("../middlewares/users.middlewares");
 const { validateFields } = require("../middlewares/validate-fields");
 const router = Router();
 
-router.get('/', getRepairs);
+router.use(protectToken)
 
-router.get('/:id', repairExists, getRepair);
+router.get('/', protectEmployee, getRepairs);
+
+router.get('/:id', protectEmployee, repairExists, getRepair);
 
 
 router.post(
@@ -16,9 +19,10 @@ router.post(
         check('date', 'The date is required').not().isEmpty(),
         check('computerNumber', 'the computer number is mandatory').not().isEmpty(),
         check('comments', 'comments are required').not().isEmpty(),
-        validateFields
+        validateFields,
+        userExist,
+        protectEmployee
     ],
-    userExist,
     createRepair
 )
 
@@ -26,13 +30,14 @@ router.patch(
     '/:id',
     [
         check('status', 'The status is mandatory').not().isEmpty(),
-        validateFields
+        validateFields,
+        repairExists,
+        protectEmployee
     ],
-    repairExists,
     updateRepair
 )
 
-router.delete('/:id', repairExists, deleteRepair);
+router.delete('/:id', protectEmployee, repairExists, deleteRepair);
 
 module.exports = {
     repairsRouter: router

@@ -5,7 +5,7 @@ const { User } = require('../models/user.model');
 
 
 const getRepairs = catchAsync(async (req, res = response, next) => {
-    const repairs = await Repair.findAll({ include: [{ model: User }] });
+    const repairs = await Repair.findAll({ include: [{ model: User, attributes: { exclude: ['password'] } }] });
 
     const repairsFiltered = repairs.filter(repair => repair.status === 'pending')
 
@@ -52,6 +52,8 @@ const updateRepair = catchAsync(async (req, res = response, next) => {
     const { status } = req.body
 
     const { repair } = req;
+
+
 
     await repair.update({ status });
 
